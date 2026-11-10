@@ -225,23 +225,31 @@ const BASE = {
   recuerdos: [
     { titulo: 'Cuando eras tierno', chiste: 'Quién era el bebe mas lindo? JAJA TUU, mentira, mi iso', foto: 'bebe.jpeg' },
     { titulo: 'Cuando se amaban de veritas', chiste: 'De burro a burro se entienden sus burradas JSJS', foto: 'amor_hermanos.jpeg' },
-    { titulo: 'La familia es para siempre', Recuerdito: 'Siempre vamos a estar para ti feo hermano, quieras o no.', foto: 'los5.jpeg' }
+    { titulo: 'La familia es para siempre', recuerdo: 'Siempre vamos a estar para ti feo hermano, quieras o no.', foto: 'los5.jpeg' }
   ],
   enemigos: 'LUNES, TAREA, WIFI LENTO, 14 AÑOS, ALARMA, CLASERES',
-  carta: 'Querido hermano, espero que este regalo te haga sonreír y recordar todos los momentos divertidos que hemos compartido. Que tengas un cumpleaños increíble, te amamos mucho, recuerda eso siempre, el amor es necesario, no es malo.',
+  carta: 'Querido hermano, espero que este regalo te haga sonreír y recordar todos los momentos divertidos que hemos compartido. Que tengas un cumpleaños increíble, te amamos mucho, recuerda eso siempre, el amor es necesario, no es malo.\n\nP.D.: PORTATE BIEN, mira que te suspendieron ve!',
   firma: 'Tu hermano Debrahy y mi iso, que te quiere mucho.',
-  final: 'PORTATE BIEN, mira que te suspendieron ve!'
+  final: false
 };
 const copia = o => JSON.parse(JSON.stringify(o));
 function normalizar(c) {
   const r = Object.assign(copia(BASE), c || {});
-  r.recuerdos = [0, 1, 2].map(i => Object.assign(copia(BASE.recuerdos[i]), (c && c.recuerdos && c.recuerdos[i]) || {}));
+  r.recuerdos = [0, 1, 2].map(i => {
+    const x = Object.assign(copia(BASE.recuerdos[i]), (c && c.recuerdos && c.recuerdos[i]) || {});
+    // En un recuerdo, el texto se puede escribir como «recuerdo:» en vez de «chiste:».
+    if (x.recuerdo && !x.chiste) { x.chiste = x.recuerdo; }
+    return x;
+  });
   return r;
 }
 let cfg = copia(BASE);
 try { cfg = normalizar(JSON.parse($('#datos').textContent || '{}')); } catch (e) {}
 const EDITABLE = !cfg.final || location.hash === '#editar';
-if (!cfg.final) { try { const g = localStorage.getItem(CLAVE); if (g) cfg = normalizar(JSON.parse(g)); } catch (e) {} }
+// Lo guardado con Personalizar sólo vale mientras no se cambie el código: si alguien edita
+// BASE a mano, manda lo que escribió y no lo que quedó guardado de antes en el navegador.
+const HUELLA = (() => { let h = 0; const s = JSON.stringify(BASE); for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return String(h); })();
+if (!cfg.final) { try { const g = JSON.parse(localStorage.getItem(CLAVE) || 'null'); if (g && g.huella === HUELLA && g.cfg) cfg = normalizar(g.cfg); } catch (e) {} }
 if (!EDITABLE) $('#b-personalizar').style.display = 'none';
 if (matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window) document.body.classList.add('tactil');
 
@@ -361,7 +369,7 @@ function iniciarNivel(i, mostrarCartel = true) {
   enemigos = N.ene.map(([x, y], k) => ({ x: x * T + 1, y: (y + 1) * T - 14, w: 14, h: 14, vx: 0, vy: 0, dir: -1, vel: .5, vivo: true, aplast: 0, color: COLORES_ENE[k % COLORES_ENE.length], nombre: nombres[(k + i * 2) % nombres.length] }));
   if (N.jefe) {
     const [x, y] = N.jefe;
-    enemigos.push({ x: x * T, y: (y + 1) * T - 30, w: 30, h: 30, vx: 0, vy: 0, dir: -1, vel: .7, vivo: true, aplast: 0, jefe: true, vida: 3, golpe: 0, salto: 120, color: '#ff3d6e', nombre: 'LA MADRE PODEROSA' : 'JEFE FINAL' });
+    enemigos.push({ x: x * T, y: (y + 1) * T - 30, w: 30, h: 30, vx: 0, vy: 0, dir: -1, vel: .7, vivo: true, aplast: 0, jefe: true, vida: 3, golpe: 0, salto: 120, color: '#ff3d6e', nombre: 'LA MADRE PODEROSA' });
   }
   meta = { x: N.meta * T - 6, y: 13 * T - 44, w: 28, h: 44 };
   p = { x: 2 * T, y: 13 * T - 24, w: 12, h: 24, vx: 0, vy: 0, dir: 1, suelo: false, coyote: 0, buffer: 0, inv: 0, vidas: 3, anda: 0 };
@@ -791,7 +799,7 @@ function tomarCampos() {
 }
 function guardar() {
   tomarCampos(); cfg = normalizar(borrador); refrescar();
-  try { localStorage.setItem(CLAVE, JSON.stringify(cfg)); return true; }
+  try { localStorage.setItem(CLAVE, JSON.stringify({ huella: HUELLA, cfg })); return true; }
   catch (x) { toast('LAS FOTOS NO CABEN EN EL NAVEGADOR. DESCARGA EL REGALO PARA NO PERDERLAS', 4500); return false; }
 }
 $('#b-personalizar').addEventListener('click', abrirEditor);
