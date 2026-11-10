@@ -361,7 +361,7 @@ function iniciarNivel(i, mostrarCartel = true) {
   enemigos = N.ene.map(([x, y], k) => ({ x: x * T + 1, y: (y + 1) * T - 14, w: 14, h: 14, vx: 0, vy: 0, dir: -1, vel: .5, vivo: true, aplast: 0, color: COLORES_ENE[k % COLORES_ENE.length], nombre: nombres[(k + i * 2) % nombres.length] }));
   if (N.jefe) {
     const [x, y] = N.jefe;
-    enemigos.push({ x: x * T, y: (y + 1) * T - 30, w: 30, h: 30, vx: 0, vy: 0, dir: -1, vel: .7, vivo: true, aplast: 0, jefe: true, vida: 3, golpe: 0, salto: 120, color: '#ff3d6e', nombre: cfg.edad ? 'LOS ' + cfg.edad : 'JEFE FINAL' });
+    enemigos.push({ x: x * T, y: (y + 1) * T - 30, w: 30, h: 30, vx: 0, vy: 0, dir: -1, vel: .7, vivo: true, aplast: 0, jefe: true, vida: 3, golpe: 0, salto: 120, color: '#ff3d6e', nombre: 'LA MADRE PODEROSA' : 'JEFE FINAL' });
   }
   meta = { x: N.meta * T - 6, y: 13 * T - 44, w: 28, h: 44 };
   p = { x: 2 * T, y: 13 * T - 24, w: 12, h: 24, vx: 0, vy: 0, dir: 1, suelo: false, coyote: 0, buffer: 0, inv: 0, vidas: 3, anda: 0 };
